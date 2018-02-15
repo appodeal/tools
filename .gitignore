@@ -1,0 +1,6 @@
+/personagraph/bin
+/personagraph/pkg
+/personagraph/vendor/src
+*.iml
+.idea
+/personagraph/dumps
