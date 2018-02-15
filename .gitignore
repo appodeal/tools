@@ -4,3 +4,4 @@
 *.iml
 .idea
 /personagraph/dumps
+.DS_Store
