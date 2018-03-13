@@ -13,14 +13,10 @@ import (
 
 func (self *Application) Import(path string, logger *logrus.Entry) error {
 	StartAt := time.Now()
-	Profiles := 0
 	Imported := 0
-	Errors := 0
 	defer (func() {
 		logger.WithFields(logrus.Fields{
 			"imported": Imported,
-			"errors": Errors,
-			"profiles": Profiles,
 			"elapsed": time.Since(StartAt),
 		}).Info("Finish import")
 	})()
@@ -41,12 +37,16 @@ func (self *Application) Import(path string, logger *logrus.Entry) error {
 	scanner := bufio.NewScanner(zip)
 	for scanner.Scan() {
 		var p profile.Profile
-		Profiles++
 		if err := json.Unmarshal([]byte(scanner.Text()), &p); err != nil {
-			Errors++
 			logger.Error(err)
+			return err
 		} else {
-			Imported++
+			if err := self.Store(&p, logger.WithField("source", "store")); err != nil {
+				logger.Error(err)
+				return err
+			} else {
+				Imported++
+			}
 		}
 	}
 	return nil

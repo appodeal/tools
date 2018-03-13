@@ -32,7 +32,7 @@ func (self *Hosts) String() string {
 }
 
 func (self *Hosts) Aerospike() []*aerospike.Host {
-	hosts := make([]*aerospike.Host,0)
+	hosts := make([]*aerospike.Host, 0)
 
 	for _, host := range *self {
 		hosts = append(hosts, &aerospike.Host{
@@ -66,11 +66,17 @@ func (self *Hosts) Set(value string) error {
 	return nil
 }
 
+type Table struct {
+	Namespace string
+	Set string
+}
+
 type Config struct {
 	Files     []string
 	Remove    bool
 	Hosts     Hosts
 	Importers int
+	Table	 Table
 }
 
 func New() (*Config, error) {
@@ -78,6 +84,10 @@ func New() (*Config, error) {
 		Remove:    false,
 		Hosts:     Hosts{},
 		Importers: 1,
+		Table: Table{
+			Namespace: "appodeal",
+			Set: "device",
+		},
 	}
 
 	options := flag.NewFlagSet(os.Args[0], flag.ExitOnError)
@@ -87,13 +97,14 @@ func New() (*Config, error) {
 	}
 
 	options.Var(&config.Hosts, "s", "Aerospike hosts")
-
+	options.StringVar(&config.Table.Namespace, "n", config.Table.Namespace, "Aerospike namespace")
+	options.StringVar(&config.Table.Set, "t", config.Table.Set, "Aerospike set")
 	options.BoolVar(&config.Remove, "r", config.Remove, "remove file after processing")
 	options.IntVar(&config.Importers, "i", config.Importers, "number of parallel importers")
 	options.Parse(os.Args[1:])
 
 	if len(config.Hosts) == 0 {
-		config.Hosts = Hosts{Host{"127.0.0.1",3000}}
+		config.Hosts = Hosts{Host{"127.0.0.1", 3000}}
 	}
 
 	config.Files = options.Args()
