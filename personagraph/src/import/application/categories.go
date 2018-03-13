@@ -7,7 +7,7 @@ import (
 	"os"
 )
 
-type Categories map[int]string
+type Categories map[int64]string
 
 func (self *Categories) Load(path string) error {
 	file, err := os.Open(path)
@@ -20,7 +20,7 @@ func (self *Categories) Load(path string) error {
 	return nil
 }
 
-func (self *Categories) ByIDs(ids... int) ([]string, error) {
+func (self *Categories) ByIDs(ids... int64) ([]string, error) {
 	values := make([]string,0)
 	for _, id := range ids {
 		if value, ok := (*self)[id]; !ok {

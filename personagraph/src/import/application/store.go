@@ -4,6 +4,7 @@ import (
 	"import/profile"
 	"github.com/sirupsen/logrus"
 	"github.com/aerospike/aerospike-client-go"
+	"time"
 )
 
 func (self *Application) Store(profile *profile.Profile, logger *logrus.Entry) error {
@@ -19,7 +20,13 @@ func (self *Application) Store(profile *profile.Profile, logger *logrus.Entry) e
 	}
 
 	bins := aerospike.BinMap{
-		"test": 3,
+		"pg_updated_at": time.Now().Unix(),
+	}
+
+	if categories, err := self.Categories.ByIDs(profile.Categories...); err != nil {
+		return err
+	} else {
+		bins["pg_segments"] = categories
 	}
 
 	if err := self.Aerospike.Put(nil, key, bins); err != nil {
