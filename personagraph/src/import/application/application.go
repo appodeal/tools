@@ -15,18 +15,23 @@ type Application struct {
 	Importers chan string
 	Group     sync.WaitGroup
 	Aerospike *aerospike.Client
+	Categories Categories
 }
 
 func New(config *config.Config, logger *logrus.Entry) (*Application, error) {
 	application := &Application{Config: config, Logger: logger}
-	application.Logger.Infof("Aerospike hosts: %s", config.Hosts.String())
+	application.Logger.Infof("Connect to aerospike: %s", config.Hosts.String())
 	if client, err := aerospike.NewClientWithPolicyAndHost(aerospike.NewClientPolicy(), config.Hosts.Aerospike()...); err != nil {
 		logger.Error(err)
 		os.Exit(1)
 	} else {
 		application.Aerospike = client
 	}
-	application.Logger.Infof("Importers: %d", config.Importers)
+	application.Logger.Infof("Loading categories from %s", config.Categories)
+	if err := application.Categories.Load(config.Categories); err != nil {
+		logger.Error(err)
+		os.Exit(1)
+	}
 	application.Importers = make(chan string, config.Importers)
 	return application, nil
 }

@@ -68,26 +68,26 @@ func (self *Hosts) Set(value string) error {
 
 type Table struct {
 	Namespace string
-	Set string
+	Set       string
 }
 
 type Config struct {
-	Files     []string
-	Remove    bool
-	Hosts     Hosts
-	Importers int
-	Table	 Table
+	Files      []string
+	Hosts      Hosts
+	Importers  int
+	Table      Table
+	Categories string
 }
 
 func New() (*Config, error) {
 	config := &Config{
-		Remove:    false,
 		Hosts:     Hosts{},
 		Importers: 1,
 		Table: Table{
 			Namespace: "appodeal",
-			Set: "device",
+			Set:       "device",
 		},
+		Categories: "./categories.yml",
 	}
 
 	options := flag.NewFlagSet(os.Args[0], flag.ExitOnError)
@@ -99,7 +99,7 @@ func New() (*Config, error) {
 	options.Var(&config.Hosts, "s", "Aerospike hosts")
 	options.StringVar(&config.Table.Namespace, "n", config.Table.Namespace, "Aerospike namespace")
 	options.StringVar(&config.Table.Set, "t", config.Table.Set, "Aerospike set")
-	options.BoolVar(&config.Remove, "r", config.Remove, "remove file after processing")
+	options.StringVar(&config.Categories, "c", config.Categories, "YAML file with categories from Personagraph")
 	options.IntVar(&config.Importers, "i", config.Importers, "number of parallel importers")
 	options.Parse(os.Args[1:])
 
