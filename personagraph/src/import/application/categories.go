@@ -20,8 +20,8 @@ func (self *Categories) Load(path string) error {
 	return nil
 }
 
-func (self *Categories) ByIDs(ids... int64) ([]string, error) {
-	values := make([]string,0)
+func (self *Categories) ByIDs(ids ... int64) ([]string, error) {
+	values := make([]string, 0)
 	for _, id := range ids {
 		if value, ok := (*self)[id]; !ok {
 			return []string{}, errors.New(fmt.Sprintf("Unknown category id: %d", id))

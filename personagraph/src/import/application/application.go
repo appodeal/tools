@@ -10,11 +10,11 @@ import (
 )
 
 type Application struct {
-	Config    *config.Config
-	Logger    *logrus.Entry
-	Importers chan string
-	Group     sync.WaitGroup
-	Aerospike *aerospike.Client
+	Config     *config.Config
+	Logger     *logrus.Entry
+	Importers  chan string
+	Group      sync.WaitGroup
+	Aerospike  *aerospike.Client
 	Categories Categories
 }
 

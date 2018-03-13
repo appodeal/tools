@@ -30,34 +30,34 @@ func miniTS() int {
 
 type TextFormatter struct {
 	// Set to true to bypass checking for a TTY before outputting colors.
-	ForceColors      bool
+	ForceColors bool
 
 	// Force disabling colors.
-	DisableColors    bool
+	DisableColors bool
 
 	// Disable timestamp logging. useful when output is redirected to logging
 	// system that already adds timestamps.
 	DisableTimestamp bool
 
 	// Enable logging of just the time passed since beginning of execution.
-	ShortTimestamp   bool
+	ShortTimestamp bool
 
 	// Timestamp format to use for display when a full timestamp is printed.
-	TimestampFormat  string
+	TimestampFormat string
 
 	// The fields are sorted by default for a consistent output. For applications
 	// that log extremely frequently and don't use the JSON formatter this may not
 	// be desired.
-	DisableSorting   bool
+	DisableSorting bool
 
 	// Pad msg field with spaces on the right for display.
 	// The value for this parameter will be the size of padding.
 	// Its default value is zero, which means no padding will be applied for msg.
-	SpacePadding     int
+	SpacePadding int
 
 	// Whether the formatter's out is to a terminal
-	isTerminal       bool
-	terminalOnce     sync.Once
+	isTerminal   bool
+	terminalOnce sync.Once
 }
 
 func (f *TextFormatter) Format(entry *logrus.Entry) ([]byte, error) {
@@ -151,12 +151,12 @@ func (f *TextFormatter) printColored(b *bytes.Buffer, entry *logrus.Entry, keys 
 	}
 
 	if f.DisableTimestamp {
-		fmt.Fprintf(b, "%s%s %s%+5s%s%s " + messageFormat, ansi.LightBlack, reset, levelColor, levelText, reset, prefix, message)
+		fmt.Fprintf(b, "%s%s %s%+5s%s%s "+messageFormat, ansi.LightBlack, reset, levelColor, levelText, reset, prefix, message)
 	} else {
 		if f.ShortTimestamp {
-			fmt.Fprintf(b, "%s[%04d]%s %s%+5s%s%s " + messageFormat, ansi.LightBlack, miniTS(), reset, levelColor, levelText, reset, prefix, message)
+			fmt.Fprintf(b, "%s[%04d]%s %s%+5s%s%s "+messageFormat, ansi.LightBlack, miniTS(), reset, levelColor, levelText, reset, prefix, message)
 		} else {
-			fmt.Fprintf(b, "%s[%s]%s %s%+5s%s%s " + messageFormat, ansi.LightBlack, entry.Time.Format(timestampFormat), reset, levelColor, levelText, reset, prefix, message)
+			fmt.Fprintf(b, "%s[%s]%s %s%+5s%s%s "+messageFormat, ansi.LightBlack, entry.Time.Format(timestampFormat), reset, levelColor, levelText, reset, prefix, message)
 		}
 	}
 	for _, k := range keys {
@@ -182,7 +182,7 @@ func extractPrefix(msg string) (string, string) {
 	regex := regexp.MustCompile("^\\\\[(.*?)]")
 	if regex.MatchString(msg) {
 		match := regex.FindString(msg)
-		prefix, msg = match[1:len(match) - 1], strings.TrimSpace(msg[len(match):])
+		prefix, msg = match[1:len(match)-1], strings.TrimSpace(msg[len(match):])
 	}
 	return prefix, msg
 }

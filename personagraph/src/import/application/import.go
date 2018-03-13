@@ -17,7 +17,7 @@ func (self *Application) Import(path string, logger *logrus.Entry) error {
 	defer (func() {
 		logger.WithFields(logrus.Fields{
 			"imported": Imported,
-			"elapsed": time.Since(StartAt),
+			"elapsed":  time.Since(StartAt),
 		}).Info("Finish import")
 	})()
 	logger.Infof("Start import")
@@ -28,7 +28,9 @@ func (self *Application) Import(path string, logger *logrus.Entry) error {
 	}
 	defer file.Close()
 	zip, err := gzip.NewReader(file)
-	if err == io.EOF { return nil }
+	if err == io.EOF {
+		return nil
+	}
 	if err != nil {
 		logger.Error(err)
 		return nil
