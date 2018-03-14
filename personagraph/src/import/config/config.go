@@ -26,7 +26,7 @@ func New() (*Config, error) {
 		Importers: 1,
 		Table: Table{
 			Namespace: "appodeal",
-			Set:       "device",
+			Set:       "device_apps_interests",
 		},
 		Categories: "./categories.yml",
 	}
