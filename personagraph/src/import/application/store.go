@@ -58,8 +58,6 @@ func (self *Application) Store(profile *profile.Profile, logger *logrus.Entry) e
 		ids = append(ids, category.Category)
 	}
 
-	logger.Infof("%+v", categories)
-
 	bins := aerospike.BinMap{
 		"pg_updated_at": time.Now().Unix(),
 	}
