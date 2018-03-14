@@ -1,0 +1,41 @@
+---
+version: 0.5
+
+networks:
+  staging:
+    env:
+      home: /opt/apps/appodeal-tools/personagraph
+      goos: linux
+      goarch: amd64
+    hosts:
+      - deploy@staging.appodeal.com
+commands:
+  ping:
+    desc: Print uname and current date/time
+    run: uname -a; date
+  vendors:
+    desc: Restore vendors for build
+    local: gb vendor restore
+  build:
+    desc: Build applications
+    local: GOOS=$goos GOARCH=$goarch gb build
+  prepare:
+    desc: Create director for project
+    run: mkdir -p $home/bin $home/dumps
+  upload:
+    desc: Upload binaries
+    upload:
+      - src: ./bin/import-$goos-$goarch
+        dst: $home
+      - src: ./categories.yml
+        dst: $home
+  install:
+    desc: Rename binaries to regular names
+    run: >
+      mv $home/bin/import-$goos-$goarch $home/bin/import
+targets:
+  deploy:
+    - build
+    - prepare
+    - upload
+    - install

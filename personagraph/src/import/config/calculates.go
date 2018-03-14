@@ -29,6 +29,19 @@ func (self *Calculates) String() string {
 	return strings.Join(calculates, ", ")
 }
 
+func (self *Calculates) NameByIDs(ids ... int64) string {
+	for _, calculate := range *self {
+		for _, v1 := range ids {
+			for _, v2 := range calculate.CategoryIDs {
+				if v1 == v2 {
+					return calculate.Name
+				}
+			}
+		}
+	}
+	return ""
+}
+
 func (self *Calculates) Set(value string) error {
 	calculate := Calculate{}
 
@@ -39,8 +52,7 @@ func (self *Calculates) Set(value string) error {
 	}
 	calculate.Name = parts[0]
 
-
-	for _, v := range strings.Split(parts[1],",") {
+	for _, v := range strings.Split(parts[1], ",") {
 		if id, err := strconv.Atoi(v); err != nil {
 			fmt.Printf("Invalid category id: %s\n", v)
 			os.Exit(1)

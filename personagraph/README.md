@@ -21,6 +21,10 @@
 
 ## Usage
 
-1. Import dumps in Gzip format
+- Import dumps in Gzip format
     
     `$ ./bin/import dumps/*.gz`
+
+- Import dumps in Gzip format with count profiles with some categories
+
+    `$./bin/import -c with-gender:55,56 -c with-age:40,41,42,43,44,45,46 ./dumps/*.gz`

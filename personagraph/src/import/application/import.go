@@ -14,11 +14,16 @@ import (
 func (self *Application) Import(path string, logger *logrus.Entry) error {
 	StartAt := time.Now()
 	Imported := 0
+	calculates := map[string]int64{}
 	defer (func() {
+		stats := logrus.Fields{}
+		for key, value := range calculates {
+			stats[key] = value
+		}
 		logger.WithFields(logrus.Fields{
 			"imported": Imported,
 			"elapsed":  time.Since(StartAt),
-		}).Info("Finish import")
+		}).WithFields(stats).Info("Finish import")
 	})()
 	logger.Infof("Start import")
 	file, err := os.Open(path)
@@ -43,6 +48,13 @@ func (self *Application) Import(path string, logger *logrus.Entry) error {
 			logger.Error(err)
 			return err
 		} else {
+			if name := self.Config.Calculates.NameByIDs(p.Categories...); name != "" {
+				if v, ok := calculates[name]; ok {
+					calculates[name] = v + 1
+				} else {
+					calculates[name] = 1
+				}
+			}
 			if err := self.Store(&p, logger.WithField("source", "store")); err != nil {
 				logger.Error(err)
 				return err
