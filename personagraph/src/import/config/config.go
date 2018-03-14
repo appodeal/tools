@@ -18,6 +18,7 @@ type Config struct {
 	Table      Table
 	Categories string
 	Calculates Calculates
+	BlackHole    bool
 }
 
 func New() (*Config, error) {
@@ -43,6 +44,7 @@ func New() (*Config, error) {
 	options.StringVar(&config.Categories, "p", config.Categories, "YAML file with categories from Personagraph")
 	options.IntVar(&config.Importers, "i", config.Importers, "number of parallel importers")
 	options.Var(&config.Calculates, "c", "calculate of category (example: name:1,2,3,4)")
+	options.BoolVar(&config.BlackHole, "b", config.BlackHole, "don't write profiles to aerospike")
 	options.Parse(os.Args[1:])
 
 	if len(config.Hosts) == 0 {

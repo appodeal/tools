@@ -55,11 +55,16 @@ func (self *Application) Import(path string, logger *logrus.Entry) error {
 					calculates[name] = 1
 				}
 			}
-			if err := self.Store(&p, logger.WithField("source", "store")); err != nil {
-				logger.Error(err)
-				return err
-			} else {
+			if self.Config.BlackHole {
+				continue
 				Imported++
+			} else {
+				if err := self.Store(&p, logger.WithField("source", "store")); err != nil {
+					logger.Error(err)
+					return err
+				} else {
+					Imported++
+				}
 			}
 		}
 	}

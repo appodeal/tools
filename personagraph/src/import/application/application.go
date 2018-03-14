@@ -20,12 +20,14 @@ type Application struct {
 
 func New(config *config.Config, logger *logrus.Entry) (*Application, error) {
 	application := &Application{Config: config, Logger: logger}
-	application.Logger.Infof("Connect to aerospike: %s", config.Hosts.String())
-	if client, err := aerospike.NewClientWithPolicyAndHost(aerospike.NewClientPolicy(), config.Hosts.Aerospike()...); err != nil {
-		logger.Error(err)
-		os.Exit(1)
-	} else {
-		application.Aerospike = client
+	if !config.BlackHole {
+		application.Logger.Infof("Connect to aerospike: %s", config.Hosts.String())
+		if client, err := aerospike.NewClientWithPolicyAndHost(aerospike.NewClientPolicy(), config.Hosts.Aerospike()...); err != nil {
+			logger.Error(err)
+			os.Exit(1)
+		} else {
+			application.Aerospike = client
+		}
 	}
 	application.Logger.Infof("Loading categories from %s", config.Categories)
 	if err := application.Categories.Load(config.Categories); err != nil {
