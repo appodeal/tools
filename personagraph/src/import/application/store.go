@@ -38,7 +38,7 @@ func (self byWeight) Less(i, j int) bool {
 	return self[i].Weight > self[j].Weight
 }
 
-func (self *Application) Store(profile *profile.Profile, logger *logrus.Entry) error {
+func (self *Application) Store(policy *aerospike.WritePolicy, profile *profile.Profile, logger *logrus.Entry) error {
 	var (
 		key   *aerospike.Key
 		table = self.Config.Table
@@ -68,7 +68,7 @@ func (self *Application) Store(profile *profile.Profile, logger *logrus.Entry) e
 		bins["pg_segments"] = categories
 	}
 
-	if err := self.Aerospike.Put(nil, key, bins); err != nil {
+	if err := self.Aerospike.Put(policy, key, bins); err != nil {
 		return err
 	}
 

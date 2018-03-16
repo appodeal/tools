@@ -10,11 +10,14 @@ import (
 	"encoding/json"
 	"import/profile"
 	"path/filepath"
+	"github.com/aerospike/aerospike-client-go"
+	"github.com/aerospike/aerospike-client-go/types"
 )
 
 func (self *Application) Import(path string, logger *logrus.Entry) error {
 	StartAt := time.Now()
 	Imported := 0
+	Total := 0
 	calculates := map[string]int64{}
 	defer (func() {
 		stats := logrus.Fields{}
@@ -23,6 +26,7 @@ func (self *Application) Import(path string, logger *logrus.Entry) error {
 		}
 		logger.WithFields(logrus.Fields{
 			"imported": Imported,
+			"total": Total,
 			"elapsed":  time.Since(StartAt),
 		}).WithFields(stats).Info("Finish import")
 	})()
@@ -45,31 +49,53 @@ func (self *Application) Import(path string, logger *logrus.Entry) error {
 	}
 	defer zip.Close()
 
+	policy := aerospike.WritePolicy{
+		BasePolicy:         *aerospike.NewPolicy(),
+		GenerationPolicy:   aerospike.NONE,
+		CommitLevel:        aerospike.COMMIT_ALL,
+		Generation:         0,
+		Expiration:         0,
+		SendKey:            false,
+	}
+
+	if self.Config.UpdateOnly {
+		policy.RecordExistsAction = aerospike.UPDATE_ONLY
+	} else {
+		policy.RecordExistsAction = aerospike.UPDATE
+	}
+
 	scanner := bufio.NewScanner(zip)
 	for scanner.Scan() {
 		var p profile.Profile
-		if err := json.Unmarshal([]byte(scanner.Text()), &p); err != nil {
+		text := scanner.Text()
+		if err := json.Unmarshal([]byte(text), &p); err != nil {
 			logger.Error(err)
 			return err
 		} else {
-			if name := self.Config.Calculates.NameByIDs(p.Categories...); name != "" {
-				if v, ok := calculates[name]; ok {
-					calculates[name] = v + 1
+			Total++
+			if len(self.Config.Calculates) > 0 {
+				if name := self.Config.Calculates.NameByIDs(p.Categories...); name != "" {
+					if v, ok := calculates[name]; ok {
+						calculates[name] = v + 1
+					} else {
+						calculates[name] = 1
+					}
 				} else {
-					calculates[name] = 1
+					self.Logger.WithFields(logrus.Fields{"imported": Imported, "total": Total}).
+						Warnf("Skip, because no categories: %s", text)
+					continue
 				}
 			}
-			if self.Config.BlackHole {
-				continue
-				Imported++
-			} else {
-				if err := self.Store(&p, logger.WithField("source", "store")); err != nil {
-					logger.Error(err)
-					return err
-				} else {
-					Imported++
+			if !self.Config.BlackHole {
+				if err := self.Store(&policy, &p, logger.WithField("source", "store")); err != nil {
+					ae := err.(types.AerospikeError)
+					if !(self.Config.UpdateOnly && ae.ResultCode() == types.KEY_NOT_FOUND_ERROR) {
+						logger.WithField("code", ae.ResultCode()).Error(ae)
+						return err
+					}
 				}
 			}
+			Imported++
 		}
 	}
 	if moveTo := self.Config.MoveTo; moveTo != "" {
