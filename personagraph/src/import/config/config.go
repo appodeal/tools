@@ -18,7 +18,8 @@ type Config struct {
 	Table      Table
 	Categories string
 	Calculates Calculates
-	BlackHole    bool
+	BlackHole  bool
+	MoveTo     string
 }
 
 func New() (*Config, error) {
@@ -45,6 +46,7 @@ func New() (*Config, error) {
 	options.IntVar(&config.Importers, "i", config.Importers, "number of parallel importers")
 	options.Var(&config.Calculates, "c", "calculate of category (example: name:1,2,3,4)")
 	options.BoolVar(&config.BlackHole, "b", config.BlackHole, "don't write profiles to aerospike")
+	options.StringVar(&config.MoveTo, "m", config.MoveTo, "move dump files after import to directory")
 	options.Parse(os.Args[1:])
 
 	if len(config.Hosts) == 0 {

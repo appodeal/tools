@@ -9,6 +9,7 @@ import (
 	"bufio"
 	"encoding/json"
 	"import/profile"
+	"path/filepath"
 )
 
 func (self *Application) Import(path string, logger *logrus.Entry) error {
@@ -26,12 +27,14 @@ func (self *Application) Import(path string, logger *logrus.Entry) error {
 		}).WithFields(stats).Info("Finish import")
 	})()
 	logger.Infof("Start import")
+
 	file, err := os.Open(path)
 	if err != nil {
 		logger.Error(err)
 		return nil
 	}
 	defer file.Close()
+
 	zip, err := gzip.NewReader(file)
 	if err == io.EOF {
 		return nil
@@ -41,6 +44,7 @@ func (self *Application) Import(path string, logger *logrus.Entry) error {
 		return nil
 	}
 	defer zip.Close()
+
 	scanner := bufio.NewScanner(zip)
 	for scanner.Scan() {
 		var p profile.Profile
@@ -66,6 +70,12 @@ func (self *Application) Import(path string, logger *logrus.Entry) error {
 					Imported++
 				}
 			}
+		}
+	}
+	if moveTo := self.Config.MoveTo; moveTo != "" {
+		if err := os.Rename(path, filepath.Join(moveTo, filepath.Base(file.Name()))); err != nil {
+			logger.Error(err)
+			os.Exit(1)
 		}
 	}
 	return nil
