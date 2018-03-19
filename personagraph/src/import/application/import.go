@@ -60,8 +60,10 @@ func (self *Application) Import(path string, logger *logrus.Entry) error {
 	}
 
 	if self.Config.UpdateOnly {
+		// Update record only.
 		policy.RecordExistsAction = aerospike.UPDATE_ONLY
 	} else {
+		// Create or update record.
 		policy.RecordExistsAction = aerospike.UPDATE
 	}
 
@@ -74,15 +76,19 @@ func (self *Application) Import(path string, logger *logrus.Entry) error {
 			return err
 		} else {
 			Total++
-			if len(self.Config.Calculates) > 0 {
-				if name := self.Config.Calculates.NameByIDs(p.Categories...); name != "" {
-					if v, ok := calculates[name]; ok {
-						calculates[name] = v + 1
-					} else {
-						calculates[name] = 1
+			if len(self.Config.Filters) > 0 {
+				if names := self.Config.Filters.NameByIDs(p.Categories...); len(names) > 0 {
+					for _, name := range names {
+						if v, ok := calculates[name]; ok {
+							calculates[name] = v + 1
+						} else {
+							calculates[name] = 1
+						}
 					}
-				} else if self.SkippedProfiles != nil {
-					fmt.Fprintln(self.SkippedProfiles, text)
+				} else {
+					if self.SkippedProfiles != nil {
+						fmt.Fprintln(self.SkippedProfiles, text)
+					}
 					continue
 				}
 			}

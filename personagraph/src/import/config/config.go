@@ -17,7 +17,7 @@ type Config struct {
 	Importers       int
 	Table           Table
 	Categories      string
-	Calculates      Calculates
+	Filters         Filters
 	BlackHole       bool
 	MoveTo          string
 	UpdateOnly      bool
@@ -46,7 +46,7 @@ func New() (*Config, error) {
 	options.StringVar(&config.Table.Set, "t", config.Table.Set, "Aerospike set")
 	options.StringVar(&config.Categories, "p", config.Categories, "YAML file with categories from Personagraph")
 	options.IntVar(&config.Importers, "i", config.Importers, "number of parallel importers")
-	options.Var(&config.Calculates, "f", "filter profiles by categories (example: name:1,2,3,4)")
+	options.Var(&config.Filters, "f", "filter profiles by categories (example: filter-name:1,2,3,4)")
 	options.BoolVar(&config.BlackHole, "b", config.BlackHole, "don't write profiles to aerospike")
 	options.StringVar(&config.MoveTo, "m", config.MoveTo, "move dump files after import to directory")
 	options.BoolVar(&config.UpdateOnly, "u", config.UpdateOnly, "only update profiles")
