@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"github.com/aerospike/aerospike-client-go"
 	"github.com/aerospike/aerospike-client-go/types"
+	"fmt"
 )
 
 func (self *Application) Import(path string, logger *logrus.Entry) error {
@@ -80,9 +81,8 @@ func (self *Application) Import(path string, logger *logrus.Entry) error {
 					} else {
 						calculates[name] = 1
 					}
-				} else {
-					self.Logger.WithFields(logrus.Fields{"imported": Imported, "total": Total}).
-						Warnf("Skip, because no categories: %s", text)
+				} else if self.SkippedProfiles != nil {
+					fmt.Fprintln(self.SkippedProfiles, text)
 					continue
 				}
 			}

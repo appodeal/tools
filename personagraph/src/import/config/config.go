@@ -12,15 +12,16 @@ type Table struct {
 }
 
 type Config struct {
-	Files      []string
-	Hosts      Hosts
-	Importers  int
-	Table      Table
-	Categories string
-	Calculates Calculates
-	BlackHole  bool
-	MoveTo     string
-	UpdateOnly bool
+	Files           []string
+	Hosts           Hosts
+	Importers       int
+	Table           Table
+	Categories      string
+	Calculates      Calculates
+	BlackHole       bool
+	MoveTo          string
+	UpdateOnly      bool
+	SkippedProfiles string
 }
 
 func New() (*Config, error) {
@@ -40,7 +41,7 @@ func New() (*Config, error) {
 		options.PrintDefaults()
 	}
 
-	options.Var(&config.Hosts, "s", "Aerospike hosts (example 127.0.0.1:3000)")
+	options.Var(&config.Hosts, "a", "Aerospike hosts (example 127.0.0.1:3000)")
 	options.StringVar(&config.Table.Namespace, "n", config.Table.Namespace, "Aerospike namespace")
 	options.StringVar(&config.Table.Set, "t", config.Table.Set, "Aerospike set")
 	options.StringVar(&config.Categories, "p", config.Categories, "YAML file with categories from Personagraph")
@@ -49,6 +50,7 @@ func New() (*Config, error) {
 	options.BoolVar(&config.BlackHole, "b", config.BlackHole, "don't write profiles to aerospike")
 	options.StringVar(&config.MoveTo, "m", config.MoveTo, "move dump files after import to directory")
 	options.BoolVar(&config.UpdateOnly, "u", config.UpdateOnly, "only update profiles")
+	options.StringVar(&config.SkippedProfiles, "s", config.SkippedProfiles, "write skipped profiles to file")
 
 	options.Parse(os.Args[1:])
 

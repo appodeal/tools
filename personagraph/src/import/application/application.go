@@ -10,12 +10,13 @@ import (
 )
 
 type Application struct {
-	Config     *config.Config
-	Logger     *logrus.Entry
-	Importers  chan string
-	Group      sync.WaitGroup
-	Aerospike  *aerospike.Client
-	Categories Categories
+	Config          *config.Config
+	Logger          *logrus.Entry
+	Importers       chan string
+	Group           sync.WaitGroup
+	Aerospike       *aerospike.Client
+	Categories      Categories
+	SkippedProfiles *os.File
 }
 
 func New(config *config.Config, logger *logrus.Entry) (*Application, error) {
@@ -32,6 +33,16 @@ func New(config *config.Config, logger *logrus.Entry) (*Application, error) {
 	} else {
 		application.Logger = application.Logger.WithField("storage", "black-hole")
 	}
+
+	if config.SkippedProfiles != "" {
+		if file, err := os.OpenFile(config.SkippedProfiles, os.O_TRUNC | os.O_CREATE | os.O_WRONLY | os.O_EXCL, 0777); err != nil {
+			logger.Error(err)
+			os.Exit(1)
+		} else {
+			application.SkippedProfiles = file
+		}
+	}
+
 	application.Logger.Infof("Loading categories from %s", config.Categories)
 	if err := application.Categories.Load(config.Categories); err != nil {
 		logger.Error(err)
