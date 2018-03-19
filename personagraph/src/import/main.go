@@ -16,7 +16,7 @@ func main() {
 	logger.Formatter = &formatter.TextFormatter{}
 	if c, err := config.New(); err != nil {
 		logger.Error(err)
-	} else if a, err := application.New(c, logger.WithField("source", "application")); err != nil {
+	} else if a, err := application.New(c, logrus.NewEntry(logger)); err != nil {
 		logger.Error(err)
 	} else if err := a.Run(); err != nil {
 		logger.Error(err)

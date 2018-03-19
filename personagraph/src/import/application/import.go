@@ -94,10 +94,15 @@ func (self *Application) Import(path string, logger *logrus.Entry) error {
 			}
 			if !self.Config.BlackHole {
 				if err := self.Store(&policy, &p, logger.WithField("source", "store")); err != nil {
-					ae := err.(types.AerospikeError)
-					if !(self.Config.UpdateOnly && ae.ResultCode() == types.KEY_NOT_FOUND_ERROR) {
-						logger.WithField("code", ae.ResultCode()).Error(ae)
-						return err
+					switch err := err.(type) {
+						case *types.AerospikeError:
+							if !(self.Config.UpdateOnly && err.ResultCode() == types.KEY_NOT_FOUND_ERROR) {
+								logger.WithField("code", err.ResultCode()).Error(err)
+								return err
+							}
+						default:
+							logger.Error(err)
+							return err
 					}
 				}
 			}
