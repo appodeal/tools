@@ -20,18 +20,18 @@ type Application struct {
 }
 
 func New(config *config.Config, logger *logrus.Entry) (*Application, error) {
-	application := &Application{Config: config, Logger: logger}
+	self := &Application{Config: config, Logger: logger}
 	if !config.BlackHole {
-		application.Logger.Infof("Connect to aerospike: %s", config.Hosts.String())
+		self.Logger.Infof("Connect to aerospike: %s", config.Hosts.String())
 		if client, err := aerospike.NewClientWithPolicyAndHost(aerospike.NewClientPolicy(), config.Hosts.Aerospike()...); err != nil {
-			logger.Error(err)
+			self.Logger.Error(err)
 			os.Exit(1)
 		} else {
-			application.Logger = application.Logger.WithField("storage", "aerospike")
-			application.Aerospike = client
+			self.Logger = self.Logger.WithField("storage", "aerospike")
+			self.Aerospike = client
 		}
 	} else {
-		application.Logger = application.Logger.WithField("storage", "black-hole")
+		self.Logger = self.Logger.WithField("storage", "black-hole")
 	}
 
 	if config.SkippedProfiles != "" {
@@ -39,17 +39,17 @@ func New(config *config.Config, logger *logrus.Entry) (*Application, error) {
 			logger.Error(err)
 			os.Exit(1)
 		} else {
-			application.SkippedProfiles = file
+			self.SkippedProfiles = file
 		}
 	}
 
-	application.Logger.Infof("Loading categories from %s", config.Categories)
-	if err := application.Categories.Load(config.Categories); err != nil {
+	self.Logger.Infof("Loading categories from %s", config.Categories)
+	if err := self.Categories.Load(config.Categories); err != nil {
 		logger.Error(err)
 		os.Exit(1)
 	}
-	application.Importers = make(chan string, config.Importers)
-	return application, nil
+	self.Importers = make(chan string, config.Importers)
+	return self, nil
 }
 
 func (self *Application) Run() error {

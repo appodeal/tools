@@ -20,8 +20,9 @@ type Config struct {
 	Filters         Filters
 	BlackHole       bool
 	MoveTo          string
-	UpdateOnly      bool
+	CreateOrUpdate  bool
 	SkippedProfiles string
+	DebugLevel      string
 }
 
 func New() (*Config, error) {
@@ -33,6 +34,7 @@ func New() (*Config, error) {
 			Set:       "device_apps_interests",
 		},
 		Categories: "./categories.yml",
+		DebugLevel: "info",
 	}
 
 	options := flag.NewFlagSet(os.Args[0], flag.ExitOnError)
@@ -49,9 +51,9 @@ func New() (*Config, error) {
 	options.Var(&config.Filters, "f", "filter profiles by categories (example: filter-name:1,2,3,4)")
 	options.BoolVar(&config.BlackHole, "b", config.BlackHole, "don't write profiles to aerospike")
 	options.StringVar(&config.MoveTo, "m", config.MoveTo, "move dump files after import to directory")
-	options.BoolVar(&config.UpdateOnly, "u", config.UpdateOnly, "only update profiles")
+	options.BoolVar(&config.CreateOrUpdate, "o", config.CreateOrUpdate, "create or update profiles")
 	options.StringVar(&config.SkippedProfiles, "s", config.SkippedProfiles, "write skipped profiles to file")
-
+	options.StringVar(&config.DebugLevel, "l", config.DebugLevel, "debug level")
 	options.Parse(os.Args[1:])
 
 	if len(config.Hosts) == 0 {

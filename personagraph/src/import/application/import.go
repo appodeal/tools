@@ -20,6 +20,7 @@ func (self *Application) Import(path string, logger *logrus.Entry) error {
 	StartAt := time.Now()
 	Imported := 0
 	Total := 0
+	Skipped := 0
 	calculates := map[string]int64{}
 	defer (func() {
 		stats := logrus.Fields{}
@@ -29,6 +30,7 @@ func (self *Application) Import(path string, logger *logrus.Entry) error {
 		logger.WithFields(logrus.Fields{
 			"imported": Imported,
 			"total": Total,
+			"skipped": Skipped,
 			"elapsed":  time.Since(StartAt),
 		}).WithFields(stats).Info("Finish import")
 	})()
@@ -67,12 +69,12 @@ func (self *Application) Import(path string, logger *logrus.Entry) error {
 		SendKey:            false,
 	}
 
-	if self.Config.UpdateOnly {
-		// Update record only.
-		policy.RecordExistsAction = aerospike.UPDATE_ONLY
-	} else {
+	if self.Config.CreateOrUpdate {
 		// Create or update record.
 		policy.RecordExistsAction = aerospike.UPDATE
+	} else {
+		// Update record only.
+		policy.RecordExistsAction = aerospike.UPDATE_ONLY
 	}
 
 	for scanner.Scan() {
@@ -93,6 +95,7 @@ func (self *Application) Import(path string, logger *logrus.Entry) error {
 						}
 					}
 				} else {
+					self.Logger.WithField("device", p.Device).Debug("Skipped: because filtered")
 					if self.SkippedProfiles != nil {
 						fmt.Fprintln(self.SkippedProfiles, text)
 					}
@@ -102,9 +105,16 @@ func (self *Application) Import(path string, logger *logrus.Entry) error {
 			if !self.Config.BlackHole {
 				if err := self.Store(&policy, &p, logger.WithField("source", "store")); err != nil {
 					switch err := err.(type) {
-						case *types.AerospikeError:
-							if !(self.Config.UpdateOnly && err.ResultCode() == types.KEY_NOT_FOUND_ERROR) {
-								logger.WithField("code", err.ResultCode()).Error(err)
+						case types.AerospikeError:
+							if !self.Config.CreateOrUpdate && err.ResultCode() == types.KEY_NOT_FOUND_ERROR {
+								Skipped++
+								self.Logger.WithField("device", p.Device).Debug("Skipped: because not exists")
+								if self.SkippedProfiles != nil {
+									fmt.Fprintln(self.SkippedProfiles, text)
+								}
+								continue
+							} else {
+								logger.Error(err)
 								return err
 							}
 						default:
