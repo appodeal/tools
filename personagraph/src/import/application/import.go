@@ -63,7 +63,7 @@ func (self *Application) Import(path string, logger *logrus.Entry) error {
 		GenerationPolicy:   aerospike.NONE,
 		CommitLevel:        aerospike.COMMIT_ALL,
 		Generation:         0,
-		Expiration:         0,
+		Expiration:         aerospike.TTLDontUpdate,
 		SendKey:            false,
 	}
 
