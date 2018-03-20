@@ -32,3 +32,7 @@
 - Other options can be found with -h flag
 
    `$ ./bin/import -h`
+
+## Supported file formats
+
+During import, this tool use gzip reader if file ends with .gz and plain text reader in other formats 
