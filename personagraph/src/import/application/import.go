@@ -13,6 +13,7 @@ import (
 	"github.com/aerospike/aerospike-client-go"
 	"github.com/aerospike/aerospike-client-go/types"
 	"fmt"
+	"strings"
 )
 
 func (self *Application) Import(path string, logger *logrus.Entry) error {
@@ -33,6 +34,8 @@ func (self *Application) Import(path string, logger *logrus.Entry) error {
 	})()
 	logger.Infof("Start import")
 
+	var scanner *bufio.Scanner
+
 	file, err := os.Open(path)
 	if err != nil {
 		logger.Error(err)
@@ -40,15 +43,20 @@ func (self *Application) Import(path string, logger *logrus.Entry) error {
 	}
 	defer file.Close()
 
-	zip, err := gzip.NewReader(file)
-	if err == io.EOF {
-		return nil
+	if strings.Index(path, ".gz") > 0 {
+		zip, err := gzip.NewReader(file)
+		if err == io.EOF {
+			return nil
+		}
+		if err != nil {
+			logger.Error(err)
+			return nil
+		}
+		defer zip.Close()
+		scanner = bufio.NewScanner(zip)
+	} else {
+		scanner = bufio.NewScanner(bufio.NewReader(file))
 	}
-	if err != nil {
-		logger.Error(err)
-		return nil
-	}
-	defer zip.Close()
 
 	policy := aerospike.WritePolicy{
 		BasePolicy:         *aerospike.NewPolicy(),
@@ -67,7 +75,6 @@ func (self *Application) Import(path string, logger *logrus.Entry) error {
 		policy.RecordExistsAction = aerospike.UPDATE
 	}
 
-	scanner := bufio.NewScanner(zip)
 	for scanner.Scan() {
 		var p profile.Profile
 		text := scanner.Text()
