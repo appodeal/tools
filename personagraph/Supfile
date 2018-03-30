@@ -2,6 +2,13 @@
 version: 0.5
 
 networks:
+  appodeals-unicorn1:
+    env:
+      home: /opt/apps/appodeal-tools/personagraph
+      goos: linux
+      goarch: amd64
+    hosts:
+      - deploy@unic1.api.appodeal.com
   staging:
     env:
       home: /opt/apps/appodeal-tools/personagraph
