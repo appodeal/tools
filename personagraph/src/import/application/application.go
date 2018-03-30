@@ -12,7 +12,7 @@ import (
 type Application struct {
 	Config          *config.Config
 	Logger          *logrus.Entry
-	Importers       chan string
+	Queue           chan string
 	Group           sync.WaitGroup
 	Aerospike       *aerospike.Client
 	Categories      Categories
@@ -48,26 +48,24 @@ func New(config *config.Config, logger *logrus.Entry) (*Application, error) {
 		logger.Error(err)
 		os.Exit(1)
 	}
-	self.Importers = make(chan string, config.Importers)
+	self.Queue = make(chan string)
 	return self, nil
 }
 
 func (self *Application) Run() error {
-	// TODO: need fix parallel importing
 	self.Group.Add(len(self.Config.Files))
-	go func(self *Application) {
-		for {
-			file := <-self.Importers
-			func(self *Application, file string) {
-				defer self.Group.Done()
-				self.Import(file, self.Logger.WithField("file", file))
-			}(self, file)
-		}
-	}(self)
+
+	for i := 0; i < self.Config.Importers; i++ {
+		go func(self *Application, queue chan string) {
+			defer self.Group.Done()
+			file := <- queue
+			self.Import(file, self.Logger.WithField("file", file))
+		}(self, self.Queue)
+	}
 
 	for _, file := range self.Config.Files {
-		self.Importers <- file
 		self.Logger.WithField("file", file).Infof("Enqueued")
+		self.Queue <- file
 	}
 
 	bufio.NewWriter(self.Logger.Logger.Out).Flush()
