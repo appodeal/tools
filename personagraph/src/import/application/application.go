@@ -53,11 +53,12 @@ func New(config *config.Config, logger *logrus.Entry) (*Application, error) {
 }
 
 func (self *Application) Run() error {
+	// TODO: need fix parallel importing
 	self.Group.Add(len(self.Config.Files))
 	go func(self *Application) {
 		for {
 			file := <-self.Importers
-			go func(self *Application, file string) {
+			func(self *Application, file string) {
 				defer self.Group.Done()
 				self.Import(file, self.Logger.WithField("file", file))
 			}(self, file)
